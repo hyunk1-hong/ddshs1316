@@ -4,3 +4,5 @@ data
 package-lock.json
 playwright-report
 test-results
+index.html
+.vite

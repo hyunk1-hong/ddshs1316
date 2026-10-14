@@ -94,4 +94,10 @@ export type Feedback = {
   comment?: string;
 };
 export type Submission = Omit<Experiment, 'id' | 'createdAt' | 'source'>;
-export type Health = { status: string; aiEnabled: boolean; experimentCount: number };
+export type Health = {
+  status: string;
+  aiEnabled: boolean;
+  experimentCount: number;
+  storage?: 'server' | 'browser';
+  persistent?: boolean;
+};
