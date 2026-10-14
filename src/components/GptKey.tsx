@@ -1,10 +1,18 @@
-import { useState, useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore, useEffect } from 'react';
 import { CheckCircle2, KeyRound, Sparkles, Trash2 } from 'lucide-react';
 import { browserAi } from '../browser-ai';
 export default function GptKey() {
   const enabled = useSyncExternalStore(browserAi.subscribe, browserAi.hasKey, () => false);
   const [input, setInput] = useState(''),
     [error, setError] = useState('');
+  useEffect(() => {
+    const clearDraft = () => {
+      setInput('');
+      setError('');
+    };
+    window.addEventListener('pagehide', clearDraft);
+    return () => window.removeEventListener('pagehide', clearDraft);
+  }, []);
   function connect() {
     try {
       browserAi.setKey(input);

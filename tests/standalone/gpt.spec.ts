@@ -114,6 +114,11 @@ async function personalFlow(page: Page, url: string) {
   await expect(page.getByLabel('GPT API 키', { exact: true })).toHaveValue('');
   await expect(page.getByRole('button', { name: '키 삭제', exact: true })).toHaveCount(0);
   await assertNoKeyStored(page);
+  await page.getByLabel('GPT API 키', { exact: true }).fill(key);
+  await page.goto('about:blank');
+  await page.goBack();
+  await expect(page.getByLabel('GPT API 키', { exact: true })).toHaveValue('');
+  await assertNoKeyStored(page);
   expect(requests.filter((u) => /^https?:/.test(u) && u !== url && u !== endpoint)).toEqual([]);
   expect(errors).toEqual([]);
 }
