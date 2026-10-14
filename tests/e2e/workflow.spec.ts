@@ -115,3 +115,37 @@ test('모바일 화면에서 메뉴, 질문, 상세 화면을 이용한다', asy
     true,
   );
 });
+
+test('서버 화면에서도 개인 키는 OpenAI에만 직접 보내고 앱 서버에는 전달하지 않는다', async ({
+  page,
+}) => {
+  const secret = 'sk-test-only-server-browser-memory-key-canary';
+  const endpoint = 'https://api.openai.com/v1/responses';
+  const ownRequests: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/'))
+      ownRequests.push(JSON.stringify({ headers: request.headers(), body: request.postData() }));
+  });
+  await page.route(endpoint, async (route) => {
+    expect(route.request().headers().authorization).toBe(`Bearer ${secret}`);
+    await route.fulfill({
+      json: {
+        output: [
+          {
+            type: 'message',
+            content: [{ type: 'output_text', text: '개인 키로 받은 모의 GPT 설명입니다.' }],
+          },
+        ],
+      },
+      headers: { 'access-control-allow-origin': '*' },
+    });
+  });
+  await page.goto('/');
+  await page.getByLabel('GPT API 키', { exact: true }).fill(secret);
+  await page.getByRole('button', { name: 'GPT 사용하기', exact: true }).click();
+  await page.getByRole('button', { name: '보랏빛 양배추의 색깔 실험 자세히 보기' }).click();
+  const modal = page.getByRole('dialog');
+  await modal.getByRole('button', { name: '질문하기', exact: true }).click();
+  await expect(modal.getByRole('status')).toContainText('개인 키로 받은 모의');
+  expect(ownRequests.join(' ')).not.toContain(secret);
+});

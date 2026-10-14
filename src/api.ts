@@ -1,10 +1,20 @@
 import { BrowserStore } from './local-store';
+import { browserAi } from './browser-ai';
+import { explanationQuestionSchema } from '../shared/ai';
+import type { Experiment } from '../shared/types';
 let mode: 'server' | 'browser' = 'server';
 let localStore: BrowserStore | undefined;
 export function configureBackend(next: 'server' | 'browser') {
   mode = next;
 }
 export async function api<T>(path: string, body?: unknown): Promise<T> {
+  const aiPath = path.match(/^\/experiments\/([^/]+)\/explain$/);
+  if (aiPath && body !== undefined && browserAi.hasKey()) {
+    const parsed = explanationQuestionSchema.safeParse(body);
+    if (!parsed.success) throw new Error('질문은 1,000자 이내로 입력해 주세요.');
+    const { experiment } = await api<{ experiment: Experiment }>(`/experiments/${aiPath[1]}`);
+    return (await browserAi.explain(experiment, parsed.data.question)) as T;
+  }
   if (mode === 'browser') {
     localStore ??= new BrowserStore();
     return localStore.handle(path, body) as T;

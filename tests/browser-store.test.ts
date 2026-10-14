@@ -149,5 +149,5 @@ test('단일 파일의 원리 가이드는 GPT 요청을 보내지 않고 출처
     question: '어떤 원리인가요?',
   }) as { source: string; message: string };
   assert.equal(guide.source, 'guide');
-  assert.match(guide.message, /서버 실행/);
+  assert.match(guide.message, /첫 화면/);
 });

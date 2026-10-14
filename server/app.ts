@@ -17,7 +17,11 @@ export function createApp(
 ) {
   const app = express();
   app.disable('x-powered-by');
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: { directives: { connectSrc: ["'self'", 'https://api.openai.com'] } },
+    }),
+  );
   app.use(express.json({ limit: '64kb' }));
   // API writes are same-origin; JSON content type also prevents cross-site form submissions.
   app.use('/api', (req, res, next) => {
