@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   ArrowDown,
   ArrowRight,
@@ -29,6 +29,8 @@ import {
   type RecommendationResponse,
 } from '../shared/types';
 import { api } from './api';
+import { browserAi } from './browser-ai';
+import GptKey from './components/GptKey';
 import { HeroArt } from './components/Art';
 import ExperimentCard from './components/ExperimentCard';
 import Quiz from './components/Quiz';
@@ -46,6 +48,11 @@ function readSaved(): string[] {
   }
 }
 export default function App() {
+  const personalAi = useSyncExternalStore(browserAi.subscribe, browserAi.hasKey, () => false);
+  useEffect(() => {
+    window.addEventListener('pagehide', browserAi.clearKey);
+    return () => window.removeEventListener('pagehide', browserAi.clearKey);
+  }, []);
   const [view, setView] = useState<View>('home'),
     [experiments, setExperiments] = useState<Experiment[]>([]),
     [health, setHealth] = useState<Health | null>(null),
@@ -307,6 +314,7 @@ export default function App() {
             <>
               {view === 'home' && (
                 <>
+                  <GptKey />
                   <div className="greeting">
                     <span className="eyebrow">A LITTLE CURIOSITY, A NEW DISCOVERY</span>
                     <p>
@@ -534,11 +542,13 @@ export default function App() {
         <div className="bottom-status">
           <span>
             <span className="status-dot" />
-            {health?.storage === 'browser'
-              ? '설치 없이, 브라우저에서 탐구해요'
-              : health?.aiEnabled
-                ? 'GPT 학습 도우미 연결됨'
-                : '실험 가이드와 함께 탐구해요'}
+            {personalAi
+              ? '개인 GPT 키 설정됨'
+              : health?.storage === 'browser'
+                ? '설치 없이, 브라우저에서 탐구해요'
+                : health?.aiEnabled
+                  ? 'GPT 학습 도우미 연결됨'
+                  : '실험 가이드와 함께 탐구해요'}
           </span>
           <span>MADE FOR CURIOUS MINDS</span>
         </div>
@@ -548,7 +558,7 @@ export default function App() {
           key={detail.id}
           experiment={detail}
           saved={saved.includes(detail.id)}
-          guideMode={health?.storage === 'browser'}
+          guideMode={health?.storage === 'browser' && !personalAi}
           onSave={() => toggleSave(detail)}
           onClose={() => setDetail(null)}
         />

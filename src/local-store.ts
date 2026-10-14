@@ -245,7 +245,7 @@ export class BrowserStore {
             text: experiment.principle,
             source: 'guide',
             message:
-              '파일 실행과 GitHub Pages에서는 기본 실험 가이드를 제공합니다. GPT 설명은 서버 실행 버전에서 사용할 수 있어요.',
+              '개인 API 키가 없어 기본 실험 가이드를 제공합니다. 첫 화면에서 개인 GPT API 키를 입력하면 질문할 수 있어요.',
           };
         }
         if (!match[2] && body === undefined) return { experiment };
