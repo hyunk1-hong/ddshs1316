@@ -24,9 +24,11 @@ import { api } from '../api';
 export default function Submit({
   onCreated,
   onExit,
+  browserMode = false,
 }: {
   onCreated: (e: Experiment) => void;
   onExit: () => void;
+  browserMode?: boolean;
 }) {
   const [stage, setStage] = useState(0),
     [busy, setBusy] = useState(false),
@@ -105,8 +107,12 @@ export default function Submit({
       <div className="page-heading">
         <div>
           <span className="eyebrow">SHARE YOUR DISCOVERY</span>
-          <h1>나의 발견을, 모두의 실험으로</h1>
-          <p>직접 해본 실험을 나누고 함께 더 좋은 가이드를 만들어 가요.</p>
+          <h1>{browserMode ? '나의 발견을, 나의 실험 노트로' : '나의 발견을, 모두의 실험으로'}</h1>
+          <p>
+            {browserMode
+              ? '작성한 실험은 이 브라우저에서 저장하고 추천받을 수 있어요. 다른 사람에게 공개되지는 않아요.'
+              : '직접 해본 실험을 나누고 함께 더 좋은 가이드를 만들어 가요.'}
+          </p>
         </div>
         <div className="submit-icon">
           <ClipboardList size={30} />

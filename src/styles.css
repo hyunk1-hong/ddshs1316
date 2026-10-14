@@ -2568,3 +2568,25 @@ main {
     font-size: 11px;
   }
 }
+
+.browser-mode-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  border: 1px solid #dce6d4;
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin-bottom: 22px;
+  color: #738264;
+  background: #f0f5e9;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.browser-mode-notice svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.browser-mode-notice strong {
+  font-weight: 600;
+  color: #536b44;
+}

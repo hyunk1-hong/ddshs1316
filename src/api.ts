@@ -1,4 +1,14 @@
+import { BrowserStore } from './local-store';
+let mode: 'server' | 'browser' = 'server';
+let localStore: BrowserStore | undefined;
+export function configureBackend(next: 'server' | 'browser') {
+  mode = next;
+}
 export async function api<T>(path: string, body?: unknown): Promise<T> {
+  if (mode === 'browser') {
+    localStore ??= new BrowserStore();
+    return localStore.handle(path, body) as T;
+  }
   let response: Response;
   try {
     response = await fetch(

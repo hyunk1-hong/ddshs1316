@@ -258,6 +258,24 @@ export default function App() {
           </div>
         </header>
         <main id="main" tabIndex={-1} ref={mainRef}>
+          {health?.storage === 'browser' && (
+            <div className="browser-mode-notice" role="note">
+              <BookOpen size={17} />
+              <p>
+                {health.persistent ? (
+                  <>
+                    <strong>내 브라우저의 실험실</strong> · 등록한 실험과 피드백은 이 브라우저에만
+                    저장돼요.
+                  </>
+                ) : (
+                  <>
+                    <strong>임시 실험실</strong> · 브라우저 저장이 차단되어 창을 새로 열면 등록
+                    정보와 피드백이 사라져요.
+                  </>
+                )}
+              </p>
+            </div>
+          )}
           {view === 'quiz' ? (
             <Quiz
               onExit={() => navigate('home')}
@@ -270,13 +288,18 @@ export default function App() {
             <Results data={results} onOpen={setDetail} onRestart={() => navigate('quiz')} />
           ) : view === 'submit' ? (
             <Submit
+              browserMode={health?.storage === 'browser'}
               onExit={() => navigate('home')}
               onCreated={(e) => {
                 setExperiments((prev) => [e, ...prev]);
                 setView('explore');
                 setQuery('');
                 setField('all');
-                notify('실험을 등록했어요! 임시 배점으로 추천에 참여합니다.');
+                notify(
+                  health?.storage === 'browser'
+                    ? '이 브라우저에 실험을 저장했어요! 임시 배점으로 추천에 참여합니다.'
+                    : '실험을 등록했어요! 임시 배점으로 추천에 참여합니다.',
+                );
                 setDetail(e);
               }}
             />
@@ -479,11 +502,19 @@ export default function App() {
                     <Leaf size={23} />
                   </div>
                   <div>
-                    <strong>과학은 함께할 때 더 재미있으니까.</strong>
-                    <p>당신이 해본 실험을 나누고, 다음 탐구자의 시작을 도와주세요.</p>
+                    <strong>
+                      {health?.storage === 'browser'
+                        ? '발견을 기록하면, 다음 탐구가 더 쉬워져요.'
+                        : '과학은 함께할 때 더 재미있으니까.'}
+                    </strong>
+                    <p>
+                      {health?.storage === 'browser'
+                        ? '직접 해본 실험을 이 브라우저의 탐구 목록에 추가해 보세요.'
+                        : '당신이 해본 실험을 나누고, 다음 탐구자의 시작을 도와주세요.'}
+                    </p>
                   </div>
                   <button className="text-button" onClick={() => navigate('submit')}>
-                    실험 공유하기
+                    {health?.storage === 'browser' ? '실험 기록하기' : '실험 공유하기'}
                     <ArrowUpRightIcon />
                   </button>
                 </div>
@@ -503,7 +534,11 @@ export default function App() {
         <div className="bottom-status">
           <span>
             <span className="status-dot" />
-            {health?.aiEnabled ? 'GPT 학습 도우미 연결됨' : '실험 가이드와 함께 탐구해요'}
+            {health?.storage === 'browser'
+              ? '설치 없이, 브라우저에서 탐구해요'
+              : health?.aiEnabled
+                ? 'GPT 학습 도우미 연결됨'
+                : '실험 가이드와 함께 탐구해요'}
           </span>
           <span>MADE FOR CURIOUS MINDS</span>
         </div>
@@ -513,6 +548,7 @@ export default function App() {
           key={detail.id}
           experiment={detail}
           saved={saved.includes(detail.id)}
+          guideMode={health?.storage === 'browser'}
           onSave={() => toggleSave(detail)}
           onClose={() => setDetail(null)}
         />

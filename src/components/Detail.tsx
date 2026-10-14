@@ -20,11 +20,13 @@ export default function Detail({
   saved,
   onSave,
   onClose,
+  guideMode = false,
 }: {
   experiment: Experiment;
   saved: boolean;
   onSave: () => void;
   onClose: () => void;
+  guideMode?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [question, setQuestion] = useState(''),
@@ -139,10 +141,14 @@ export default function Detail({
         <section className="ai-box">
           <div className="ai-heading">
             <Sparkles size={20} />
-            <h2>원리가 더 궁금하다면</h2>
-            <span>AI 학습 도우미</span>
+            <h2>{guideMode ? '실험 원리를 다시 확인해요' : '원리가 더 궁금하다면'}</h2>
+            <span>{guideMode ? '기본 가이드' : 'AI 학습 도우미'}</span>
           </div>
-          <p>GPT에게 실험 원리나 통제 변인을 물어보세요. 키가 없으면 기본 가이드로 안내해요.</p>
+          <p>
+            {guideMode
+              ? '설치 없이 열 수 있는 버전에서는 기본 원리 가이드를 제공해요. GPT 질문은 서버 실행 버전에서 이용할 수 있어요.'
+              : 'GPT에게 실험 원리나 통제 변인을 물어보세요. 키가 없으면 기본 가이드로 안내해요.'}
+          </p>
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -151,6 +157,7 @@ export default function Detail({
           >
             <input
               aria-label="GPT에게 실험 질문"
+              disabled={guideMode}
               placeholder="예: 어떤 변인을 일정하게 유지해야 하나요?"
               value={question}
               maxLength={1000}
@@ -158,7 +165,7 @@ export default function Detail({
             />
             <button className="primary-button small" disabled={busy} type="submit">
               <Send size={15} />
-              {busy ? '생각하는 중…' : '질문하기'}
+              {busy ? '불러오는 중…' : guideMode ? '기본 가이드 보기' : '질문하기'}
             </button>
           </form>
           {error && (
