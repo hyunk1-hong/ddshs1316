@@ -49,10 +49,10 @@ const submission: Submission = {
 };
 
 test('분야별 추가 질문과 전체 분야의 질문 수가 달라진다', () => {
-  assert.equal(getQuestions({ field: 'any' }).length, 7);
+  assert.equal(getQuestions({ field: 'any' }).length, 11);
   const q = getQuestions({ field: 'physics' });
-  assert.equal(q.length, 8);
-  assert.equal(q.at(-1)?.options[1].value, 'electricity');
+  assert.equal(q.length, 12);
+  assert.equal(q.find((question) => question.key === 'focus')?.options[1].value, 'electricity');
 });
 test('완벽한 조건은 100점이고 가중치에 따라 분야 불일치를 크게 반영한다', () => {
   const e = seeds[0],

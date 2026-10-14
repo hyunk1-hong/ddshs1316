@@ -191,7 +191,7 @@ export class BrowserStore {
       rated: [],
     });
     this.save(next);
-    return { sessionId, recommendations };
+    return { sessionId, answers, recommendations };
   }
   feedback(input: unknown) {
     const feedback = feedbackSchema.parse(input),

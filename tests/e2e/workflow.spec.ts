@@ -13,6 +13,10 @@ test('조건 설문 → 추천 → 피드백 → 상세 원리 → 저장', asyn
     '생활 속 준비물',
     '5,000원 이내',
     '색의 변화',
+    '혼자 진행해요',
+    '물·식재료·종이만 사용할래요',
+    '관찰 일지로 정리하기',
+    '과학 원리를 이해하고 싶어요',
   ];
   for (let i = 0; i < choices.length; i++) {
     await page.getByRole('button', { name: choices[i], exact: true }).click();
@@ -110,7 +114,7 @@ test('모바일 화면에서 메뉴, 질문, 상세 화면을 이용한다', asy
   await page.getByRole('button', { name: '실험 찾기', exact: true }).click();
   await page.getByRole('button', { name: '나에게 맞는 실험 찾기' }).click();
   await page.getByRole('button', { name: '어떤 분야든 좋아요' }).click();
-  await expect(page.locator('.quiz-top')).toContainText('1 / 7');
+  await expect(page.locator('.quiz-top')).toContainText('1 / 11');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
