@@ -1,5 +1,11 @@
 import { explanationQuestionSchema, explanationRequest, explanationText } from '../shared/ai';
-import type { Experiment } from '../shared/types';
+import {
+  topicAnswersSchema,
+  topicRequest,
+  topicResponse,
+  TopicResponseError,
+} from '../shared/topics';
+import type { Answers, Experiment } from '../shared/types';
 export const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 
 // Personal credentials stay in this object, never in application data or browser storage.
@@ -13,6 +19,7 @@ export class BrowserAi {
     private fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
     private now: () => number = Date.now,
     private timeoutMs = 20000,
+    private topicTimeoutMs = 60000,
   ) {}
   hasKey = () => this.#key.length > 0;
   subscribe = (listener: () => void) => {
@@ -43,22 +50,47 @@ export class BrowserAi {
     if (!this.#key) throw new Error('첫 화면에서 개인 GPT API 키를 입력해 주세요.');
     const parsed = explanationQuestionSchema.safeParse({ question });
     if (!parsed.success) throw new Error('질문은 1,000자 이내로 입력해 주세요.');
+    return this.request(
+      explanationRequest(experiment, parsed.data.question, 'gpt-4.1-mini'),
+      (payload) => ({
+        text: explanationText(payload),
+        source: 'gpt' as const,
+        message:
+          '개인 API 키로 GPT가 작성한 설명이에요. 실제 실험 전에는 교사와 내용을 확인하세요.',
+      }),
+    );
+  }
+  async topics(answers: Answers, experiments: Experiment[]) {
+    const parsed = topicAnswersSchema.safeParse(answers);
+    if (!parsed.success) throw new Error('새 주제 추천을 위해 세부 설문을 끝내 주세요.');
+    return this.request(
+      topicRequest(parsed.data, experiments, 'gpt-4.1-mini'),
+      (payload) => topicResponse(payload, parsed.data, experiments),
+      this.topicTimeoutMs,
+    );
+  }
+  private async request<T>(
+    body: unknown,
+    parse: (payload: unknown) => T,
+    timeoutMs = this.timeoutMs,
+  ): Promise<T> {
+    if (!this.#key) throw new Error('첫 화면에서 개인 GPT API 키를 입력해 주세요.');
     const now = this.now();
     this.#requestTimes = this.#requestTimes.filter((t) => now - t < 60000);
     if (this.#requestTimes.length >= 5)
       throw new Error(
-        '이 페이지에서는 GPT 질문을 분당 5회까지 보낼 수 있어요. 잠시 후 다시 시도하세요.',
+        '이 페이지에서는 GPT 요청을 분당 5회까지 보낼 수 있어요. 잠시 후 다시 시도하세요.',
       );
     this.#requestTimes.push(now);
     const controller = new AbortController(),
       generation = this.#generation;
     this.#requests.add(controller);
-    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await this.fetcher(OPENAI_RESPONSES_URL, {
         method: 'POST',
         headers: { Authorization: `Bearer ${this.#key}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(explanationRequest(experiment, parsed.data.question, 'gpt-4.1-mini')),
+        body: JSON.stringify(body),
         signal: controller.signal,
         credentials: 'omit',
         cache: 'no-store',
@@ -84,22 +116,18 @@ export class BrowserAi {
           'GPT 서비스가 요청을 처리하지 못했어요. 기본 원리를 확인하거나 잠시 후 다시 시도하세요.',
         );
       }
-      let text: string;
+      let result: T;
       try {
-        text = explanationText(await response.json());
-      } catch {
+        result = parse(await response.json());
+      } catch (error) {
+        if (error instanceof TopicResponseError) throw new BrowserAiError(error.message);
         throw new BrowserAiError('GPT 응답을 읽지 못했어요. 잠시 후 다시 시도하세요.');
       }
       if (generation !== this.#generation) throw new Error('cancelled');
-      return {
-        text,
-        source: 'gpt' as const,
-        message:
-          '개인 API 키로 GPT가 작성한 설명이에요. 실제 실험 전에는 교사와 내용을 확인하세요.',
-      };
+      return result;
     } catch (error) {
       if (generation !== this.#generation)
-        throw new Error('키 설정이 변경되어 요청을 취소했어요. 다시 질문해 주세요.');
+        throw new Error('키 설정이 변경되어 요청을 취소했어요. 다시 요청해 주세요.');
       if (error instanceof BrowserAiError) throw error;
       if (controller.signal.aborted)
         throw new Error('GPT 응답 시간이 초과됐어요. 잠시 후 다시 시도하세요.');

@@ -46,6 +46,12 @@ export type Answers = {
   equipment: Equipment[];
   location: 'home' | 'school';
   focus?: string;
+  supervision?: 'none' | 'adult' | 'teacher';
+  materialsPolicy?: 'food-only' | 'general';
+  recording?: 'notes' | 'table' | 'graph';
+  output?: 'principle' | 'report' | 'presentation';
+  measurement?: 'manual' | 'instrument';
+  repetitions?: '3' | '5';
 };
 export type Experiment = {
   id: string;
@@ -85,7 +91,11 @@ export type Recommendation = {
   cautions: string[];
   feedbackCount: number;
 };
-export type RecommendationResponse = { sessionId: string; recommendations: Recommendation[] };
+export type RecommendationResponse = {
+  sessionId: string;
+  answers: Answers;
+  recommendations: Recommendation[];
+};
 export type Feedback = {
   sessionId: string;
   experimentId: string;

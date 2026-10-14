@@ -87,7 +87,7 @@ export class Store {
         JSON.stringify(recommendations.map((r) => r.experiment.id)),
         Date.now(),
       );
-    return { sessionId, recommendations };
+    return { sessionId, answers, recommendations };
   }
   feedback(input: Feedback) {
     this.db.exec('BEGIN IMMEDIATE');

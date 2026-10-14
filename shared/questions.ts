@@ -1,6 +1,6 @@
-import type { Answers, Criterion, Field } from './types';
+import type { Answers, Field } from './types';
 export type Question = {
-  key: Criterion;
+  key: keyof Answers;
   title: string;
   description: string;
   options: { value: string; label: string; hint: string; icon?: string }[];
@@ -111,15 +111,112 @@ export const FOCUS_OPTIONS: Record<Field, Question['options']> = {
   ],
 };
 export function getQuestions(answers: Partial<Answers>): Question[] {
-  return answers.field && answers.field !== 'any'
-    ? [
-        ...common,
-        {
-          key: 'focus',
-          title: `${({ chemistry: '화학', physics: '물리', biology: '생명과학', earth: '지구과학' } as const)[answers.field]}에서 더 궁금한 것은?`,
-          description: '선택한 분야에 맞춰 한 가지 더 여쭤볼게요.',
-          options: FOCUS_OPTIONS[answers.field],
-        },
-      ]
-    : common;
+  const initial: Question[] =
+    answers.field && answers.field !== 'any'
+      ? [
+          ...common,
+          {
+            key: 'focus',
+            title: `${({ chemistry: '화학', physics: '물리', biology: '생명과학', earth: '지구과학' } as const)[answers.field]}에서 더 궁금한 것은?`,
+            description: '선택한 분야에 맞춰 한 가지 더 여쭤볼게요.',
+            options: FOCUS_OPTIONS[answers.field],
+          },
+        ]
+      : common;
+  return [
+    ...initial,
+    ...detailed,
+    ...(answers.goal && answers.goal !== 'observe' ? quantitative : []),
+  ];
 }
+const detailed: Question[] = [
+  {
+    key: 'supervision',
+    title: '실험 중 누구에게 도움을 받을 수 있나요?',
+    description:
+      '장소와 별개로 실제 지도 가능 여부를 알려 주세요. GPT는 이 범위 안에서 주제를 제안해요.',
+    options: [
+      { value: 'none', label: '혼자 진행해요', hint: '날카로운 도구·가열 없이 간단한 탐구' },
+      { value: 'adult', label: '보호자가 도와줄 수 있어요', hint: '일상 도구 사용을 함께 확인' },
+      {
+        value: 'teacher',
+        label: '과학 선생님이 지도해요',
+        hint: '학교 실험 지도를 받을 수 있어요',
+      },
+    ],
+  },
+  {
+    key: 'materialsPolicy',
+    title: '어떤 재료까지 사용하고 싶나요?',
+    description:
+      '새 주제에 필요한 재료의 범위를 정해요. 세제 혼합·유해 약품·생물 배양은 제안하지 않아요.',
+    options: [
+      {
+        value: 'food-only',
+        label: '물·식재료·종이만 사용할래요',
+        hint: '별도 실험용 시약 없이 준비하기',
+      },
+      {
+        value: 'general',
+        label: '일반 생활 재료도 괜찮아요',
+        hint: '안전한 생활 재료와 선택한 측정 도구',
+      },
+    ],
+  },
+  {
+    key: 'recording',
+    title: '결과를 어떤 방식으로 기록할까요?',
+    description: 'GPT 새 주제의 관찰 항목과 결과 해석 방법에 반영해요.',
+    options: [
+      { value: 'notes', label: '관찰 일지로 정리하기', hint: '모양·색·변화를 글과 그림으로 기록' },
+      { value: 'table', label: '측정 표로 정리하기', hint: '조건별 값을 같은 형식으로 기록' },
+      { value: 'graph', label: '그래프로 분석하기', hint: '변인 사이의 관계를 시각화' },
+    ],
+  },
+  {
+    key: 'output',
+    title: '탐구를 어디에 활용하고 싶나요?',
+    description: '탐구의 깊이와 정리 방식을 결정하는 추가 조건이에요.',
+    options: [
+      {
+        value: 'principle',
+        label: '과학 원리를 이해하고 싶어요',
+        hint: '과정과 원리를 연결해 설명',
+      },
+      { value: 'report', label: '탐구 보고서를 쓰고 싶어요', hint: '가설·변인·결과·한계를 정리' },
+      {
+        value: 'presentation',
+        label: '친구들에게 발표하고 싶어요',
+        hint: '관찰 결과와 핵심 메시지를 전달',
+      },
+    ],
+  },
+];
+const quantitative: Question[] = [
+  {
+    key: 'measurement',
+    title: '어떤 측정 방식이 편한가요?',
+    description: '데이터 측정이나 조건 비교를 선택해 추가로 여쭤봐요.',
+    options: [
+      {
+        value: 'manual',
+        label: '눈금·시간·개수를 직접 기록해요',
+        hint: '자와 시계 같은 일상 도구로 측정',
+      },
+      {
+        value: 'instrument',
+        label: '선택한 측정 기기를 활용해요',
+        hint: '저울·온도계·멀티미터·현미경 중 보유한 도구',
+      },
+    ],
+  },
+  {
+    key: 'repetitions',
+    title: '조건마다 몇 번씩 반복할까요?',
+    description: '반복 측정과 정리를 모두 선택한 총 시간 안에 포함해요.',
+    options: [
+      { value: '3', label: '조건마다 3회', hint: '평균과 측정 오차의 기초 확인' },
+      { value: '5', label: '조건마다 5회', hint: '값의 분산과 재현성도 살펴보기' },
+    ],
+  },
+];

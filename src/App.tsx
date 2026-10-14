@@ -292,7 +292,12 @@ export default function App() {
               }}
             />
           ) : view === 'results' && results ? (
-            <Results data={results} onOpen={setDetail} onRestart={() => navigate('quiz')} />
+            <Results
+              data={results}
+              onOpen={setDetail}
+              onRestart={() => navigate('quiz')}
+              serverAiEnabled={!!health?.aiEnabled}
+            />
           ) : view === 'submit' ? (
             <Submit
               browserMode={health?.storage === 'browser'}

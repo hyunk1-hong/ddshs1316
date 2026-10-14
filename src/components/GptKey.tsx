@@ -32,7 +32,7 @@ export default function GptKey() {
           <h2 id="gpt-key-title">
             GPT와 더 깊이 탐구하기 <span>선택</span>
           </h2>
-          <p>개인 API 키를 입력하면 실험 상세에서 GPT에게 질문할 수 있어요.</p>
+          <p>개인 API 키로 조건에 맞는 새 실험 주제를 추천받고, 실험 원리도 질문할 수 있어요.</p>
         </div>
       </div>
       {enabled ? (
@@ -51,7 +51,7 @@ export default function GptKey() {
           >
             <Trash2 size={14} />키 삭제
           </button>
-          <small>질문을 보내면 키와 모델 접근 권한을 확인해요.</small>
+          <small>GPT 요청을 보내면 키와 모델 접근 권한을 확인해요.</small>
         </div>
       ) : (
         <form
@@ -85,8 +85,9 @@ export default function GptKey() {
         </form>
       )}
       <p className="gpt-key-note">
-        키는 현재 페이지의 메모리에만 보관하며 새로고침·페이지 이탈 시 삭제돼요. 질문할 때 OpenAI로
-        전송되고 사용 비용이 발생할 수 있어요. 키 없이도 실험 추천은 이용할 수 있어요.
+        키는 현재 페이지의 메모리에만 보관하며 새로고침·페이지 이탈 시 삭제돼요. 새 주제 추천·질문을
+        요청할 때 OpenAI로 전송되고 사용 비용이 발생할 수 있어요. 키 없이도 등록된 실험 추천은
+        이용할 수 있어요.
       </p>
       {error && (
         <p className="error" role="alert">

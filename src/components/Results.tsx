@@ -20,6 +20,7 @@ import {
 } from '../../shared/types';
 import { ExperimentArt } from './Art';
 import { api } from '../api';
+import TopicPanel from './TopicPanel';
 function FeedbackPanel({ result, sessionId }: { result: Recommendation; sessionId: string }) {
   const [negative, setNegative] = useState(false),
     [issues, setIssues] = useState<Criterion[]>([]),
@@ -122,10 +123,12 @@ export default function Results({
   data,
   onOpen,
   onRestart,
+  serverAiEnabled,
 }: {
   data: RecommendationResponse;
   onOpen: (e: Experiment) => void;
   onRestart: () => void;
+  serverAiEnabled: boolean;
 }) {
   return (
     <section className="results-page">
@@ -133,13 +136,17 @@ export default function Results({
         <div>
           <span className="eyebrow">YOUR DISCOVERY</span>
           <h1>당신의 호기심에 맞는 실험</h1>
-          <p>답변을 바탕으로 질문별 가중치를 적용해 일치율 순으로 추천했어요.</p>
+          <p>
+            등록된 실험의 일치율 추천과, 세부 조건을 활용하는 GPT 새 주제 추천을 함께 살펴보세요.
+          </p>
         </div>
         <button className="secondary-button" onClick={onRestart}>
           <RotateCcw size={15} />
           다시 찾기
         </button>
       </div>
+      <TopicPanel key={data.sessionId} answers={data.answers} serverAiEnabled={serverAiEnabled} />
+      <h2 className="registered-heading">등록된 실험 · 조건 일치율 순</h2>
       <div className="result-explainer">
         <Sparkles size={19} />
         <span>

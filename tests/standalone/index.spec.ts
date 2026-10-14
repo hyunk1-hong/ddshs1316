@@ -37,6 +37,10 @@ async function answerQuiz(page: Page) {
     '생활 속 준비물',
     '5,000원 이내',
     '색의 변화',
+    '혼자 진행해요',
+    '물·식재료·종이만 사용할래요',
+    '관찰 일지로 정리하기',
+    '과학 원리를 이해하고 싶어요',
   ];
   for (let i = 0; i < choices.length; i++) {
     await page.getByRole('button', { name: choices[i], exact: true }).click();

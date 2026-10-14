@@ -41,6 +41,11 @@ export default function Quiz({
           : value,
       };
       if (q.key === 'field') delete next.focus;
+      if (q.key === 'goal') {
+        delete next.measurement;
+        delete next.repetitions;
+      }
+      if (q.key === 'equipment') delete next.measurement;
       return next as Partial<Answers>;
     });
     setError('');
@@ -79,7 +84,7 @@ export default function Quiz({
         <div className="quiz-heading" key={q.key}>
           <span className="step-label">
             QUESTION {String(step + 1).padStart(2, '0')}
-            {q.key === 'focus' && ' · 맞춤 질문'}
+            {['focus', 'measurement', 'repetitions'].includes(q.key) && ' · 맞춤 질문'}
           </span>
           <h1>{q.title}</h1>
           <p>{q.description}</p>
@@ -93,6 +98,11 @@ export default function Quiz({
                 className={`answer-option ${selected(option.value) ? 'selected' : ''}`}
                 aria-pressed={selected(option.value)}
                 aria-label={option.label}
+                disabled={
+                  q.key === 'measurement' &&
+                  option.value === 'instrument' &&
+                  !answers.equipment?.some((e) => e !== 'household')
+                }
                 onClick={() => select(option.value)}
               >
                 {Icon && (
@@ -135,7 +145,7 @@ export default function Quiz({
           </button>
         </div>
         <p className="quiz-footnote">
-          답변은 추천과 피드백 학습에 사용되며, 이름이나 연락처는 수집하지 않아요.
+          기본 조건은 등록 실험의 추천·피드백에, 추가 조건은 GPT 새 주제 설계에 사용해요.
         </p>
       </div>
     </section>

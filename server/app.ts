@@ -4,7 +4,8 @@ import { rateLimit } from 'express-rate-limit';
 import { z } from 'zod';
 import { Store, DomainError } from './database';
 import { answersSchema, feedbackSchema, submissionSchema } from './validation';
-import { explain } from './ai';
+import { explain, generateTopics } from './ai';
+import { topicAnswersSchema } from '../shared/topics';
 export function createApp(
   store: Store,
   options: {
@@ -75,8 +76,19 @@ export function createApp(
     limit: 5,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
-    message: { error: 'AI 질문은 분당 5회까지 가능해요. 잠시 후 다시 시도하세요.' },
+    message: { error: 'AI 요청은 분당 5회까지 가능해요. 잠시 후 다시 시도하세요.' },
     skip: () => !!options.disableRateLimit,
+  });
+  app.post('/api/topics', aiLimit, async (req, res) => {
+    res.json(
+      await generateTopics(
+        topicAnswersSchema.parse(req.body),
+        store.list(),
+        options.apiKey,
+        options.model ?? 'gpt-4.1-mini',
+        options.fetcher,
+      ),
+    );
   });
   app.post('/api/experiments/:id/explain', aiLimit, async (req, res) => {
     const { question } = z
@@ -101,12 +113,10 @@ export function createApp(
   app.use(
     (err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
       if (err instanceof z.ZodError)
-        return res
-          .status(400)
-          .json({
-            error: '입력 내용을 확인해 주세요.',
-            details: err.issues.map((i) => ({ field: i.path.join('.'), message: i.message })),
-          });
+        return res.status(400).json({
+          error: '입력 내용을 확인해 주세요.',
+          details: err.issues.map((i) => ({ field: i.path.join('.'), message: i.message })),
+        });
       if (err instanceof DomainError) return res.status(err.status).json({ error: err.message });
       if (err instanceof SyntaxError)
         return res.status(400).json({ error: '잘못된 JSON 요청이에요.' });

@@ -16,9 +16,30 @@ export const answersSchema = z
       .refine((x) => new Set(x).size === x.length),
     location: z.enum(['home', 'school']),
     focus: z.string().max(30).optional(),
+    supervision: z.enum(['none', 'adult', 'teacher']).optional(),
+    materialsPolicy: z.enum(['food-only', 'general']).optional(),
+    recording: z.enum(['notes', 'table', 'graph']).optional(),
+    output: z.enum(['principle', 'report', 'presentation']).optional(),
+    measurement: z.enum(['manual', 'instrument']).optional(),
+    repetitions: z.enum(['3', '5']).optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
+    if (
+      data.goal === 'observe' &&
+      (data.measurement !== undefined || data.repetitions !== undefined)
+    )
+      ctx.addIssue({
+        code: 'custom',
+        path: ['measurement'],
+        message: '관찰 목적에는 측정 추가 답변이 필요하지 않아요.',
+      });
+    if (data.measurement === 'instrument' && !data.equipment.some((e) => e !== 'household'))
+      ctx.addIssue({
+        code: 'custom',
+        path: ['measurement'],
+        message: '측정 기기를 선택하거나 직접 기록 방식을 골라 주세요.',
+      });
     if (data.field === 'any' && data.focus !== undefined)
       ctx.addIssue({
         code: 'custom',

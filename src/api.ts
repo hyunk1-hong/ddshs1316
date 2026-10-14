@@ -1,6 +1,7 @@
 import { BrowserStore } from './local-store';
 import { browserAi } from './browser-ai';
 import { explanationQuestionSchema } from '../shared/ai';
+import { topicAnswersSchema } from '../shared/topics';
 import type { Experiment } from '../shared/types';
 let mode: 'server' | 'browser' = 'server';
 let localStore: BrowserStore | undefined;
@@ -8,6 +9,13 @@ export function configureBackend(next: 'server' | 'browser') {
   mode = next;
 }
 export async function api<T>(path: string, body?: unknown): Promise<T> {
+  if (path === '/topics' && body !== undefined && (mode === 'browser' || browserAi.hasKey())) {
+    const parsed = topicAnswersSchema.safeParse(body);
+    if (!parsed.success) throw new Error('새 주제 추천을 위해 세부 설문을 끝내 주세요.');
+    if (!browserAi.hasKey()) throw new Error('GPT API 키를 먼저 입력해 주세요.');
+    const { experiments } = await api<{ experiments: Experiment[] }>('/experiments');
+    return (await browserAi.topics(parsed.data, experiments)) as T;
+  }
   const aiPath = path.match(/^\/experiments\/([^/]+)\/explain$/);
   if (aiPath && body !== undefined && browserAi.hasKey()) {
     const parsed = explanationQuestionSchema.safeParse(body);
