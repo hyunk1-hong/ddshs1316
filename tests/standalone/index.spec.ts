@@ -130,6 +130,7 @@ test('GitHub Pages처럼 하위 경로에 index만 배포해도 외부 파일·A
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(pagesUrl);
   await expect(page.getByRole('note')).toContainText('내 브라우저의 실험실');
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await page.getByRole('button', { name: '모든 실험 보기' }).click();
   await expect(page.locator('.experiment-card')).toHaveCount(9);
   await page.getByRole('button', { name: '생명과학', exact: true }).click();
@@ -142,6 +143,8 @@ test('GitHub Pages처럼 하위 경로에 index만 배포해도 외부 파일·A
 test('모바일에서도 직접 연 index로 설문을 진행할 수 있다', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(fileUrl);
+  await expect(page.getByRole('note')).toBeVisible();
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await answerQuiz(page);
   await expect(page.locator('.result-card')).toHaveCount(6);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(

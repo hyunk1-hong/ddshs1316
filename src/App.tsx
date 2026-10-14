@@ -89,7 +89,7 @@ export default function App() {
   }, [saved]);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-    mainRef.current?.focus();
+    mainRef.current?.focus({ preventScroll: true });
   }, [view]);
   function notify(s: string) {
     setToast(s);
